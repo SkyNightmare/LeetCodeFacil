@@ -1,0 +1,171 @@
+---
+---
+
+<button
+  id="search-button"
+  class="p-2 text-dark-500 hover:bg-dark-100 rounded-md transition-colors"
+  aria-label="Search"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+  </svg>
+</button>
+
+<dialog id="search-modal" class="w-full max-w-2xl mx-auto p-6 rounded-lg shadow-xl backdrop:bg-dark-900/50">
+  <div class="relative">
+    <input
+      type="search"
+      id="search-input"
+      placeholder="Search articles..."
+      class="w-full px-4 py-2 pr-10 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+    />
+    
+    <button
+      id="close-search"
+      class="absolute top-2 right-2 p-1 text-dark-400 hover:text-dark-600"
+      aria-label="Close search"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  
+  <div id="search-results" class="mt-4 space-y-4 max-h-[60vh] overflow-y-auto"></div>
+</dialog>
+
+<script>
+  import FlexSearch from 'flexsearch';
+  
+  // Initialize FlexSearch
+  const index = new FlexSearch.Document({
+    document: {
+      id: 'id',
+      index: ['title', 'description', 'content'],
+      store: ['title', 'description', 'slug']
+    }
+  });
+  
+  // Get DOM elements
+  const searchButton = document.getElementById('search-button');
+  const searchModal = document.getElementById('search-modal');
+  const searchInput = document.getElementById('search-input');
+  const closeButton = document.getElementById('close-search');
+  const resultsContainer = document.getElementById('search-results');
+  
+  // Fetch and index blog posts
+  async function indexPosts() {
+    try {
+      const response = await fetch('/search-index.json');
+      const posts = await response.json();
+      
+      posts.forEach((post, id) => {
+        index.add({
+          id,
+          title: post.title,
+          description: post.description,
+          content: post.content,
+          slug: post.slug
+        });
+      });
+    } catch (error) {
+      console.error('Error indexing posts:', error);
+    }
+  }
+  
+  // Search function with deduplication
+  async function performSearch(query) {
+    if (!query) {
+      resultsContainer.innerHTML = '';
+      return;
+    }
+    
+    const results = await index.search(query, {
+      enrich: true,
+      limit: 10
+    });
+    
+    // Flatten and deduplicate results
+    const flatResults = results.reduce((acc, curr) => [...acc, ...curr.result], []);
+    const uniqueResults = [];
+    const seenIds = new Set();
+    
+    for (const result of flatResults) {
+      if (!seenIds.has(result.doc.id)) {
+        seenIds.add(result.doc.id);
+        uniqueResults.push(result);
+      }
+    }
+    
+    if (uniqueResults.length === 0) {
+      resultsContainer.innerHTML = `
+        <div class="text-center py-8 text-dark-600">
+          No results found for "${query}"
+        </div>
+      `;
+      return;
+    }
+    
+    // Render unique results
+    resultsContainer.innerHTML = uniqueResults
+      .map(result => `
+        <a 
+          href="/blog/${result.doc.slug}"
+          class="block p-4 rounded-lg hover:bg-dark-50 transition-colors"
+        >
+          <h3 class="text-lg font-medium text-dark-900 mb-1">${result.doc.title}</h3>
+          <p class="text-sm text-dark-600">${result.doc.description}</p>
+        </a>
+      `)
+      .join('');
+  }
+  
+  // Event listeners
+  searchButton?.addEventListener('click', () => {
+    searchModal?.showModal();
+    searchInput?.focus();
+  });
+  
+  closeButton?.addEventListener('click', () => {
+    searchModal?.close();
+  });
+  
+  searchModal?.addEventListener('click', (e) => {
+    if (e.target === searchModal) {
+      searchModal.close();
+    }
+  });
+  
+  searchInput?.addEventListener('input', (e) => {
+    performSearch(e.target.value);
+  });
+  
+  // Initialize search index
+  indexPosts();
+</script>
+
+<style>
+  dialog::backdrop {
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  dialog[open] {
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

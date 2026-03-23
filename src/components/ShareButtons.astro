@@ -1,0 +1,76 @@
+---
+interface Props {
+  title: string;
+  url: URL;
+}
+
+const { title, url } = Astro.props;
+const encodedTitle = encodeURIComponent(title);
+const encodedUrl = encodeURIComponent(url.href);
+
+const shareLinks = [
+  {
+    name: 'Twitter',
+    url: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+    icon: 'Twitter'
+  },
+  {
+    name: 'LinkedIn',
+    url: `https://www.linkedin.com/shareArticle?mini=true&url=${encodedUrl}&title=${encodedTitle}`,
+    icon: 'LinkedIn'
+  },
+  {
+    name: 'Facebook',
+    url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    icon: 'Facebook'
+  },
+  {
+    name: 'Copy link',
+    url: '#',
+    icon: 'Link',
+    action: 'copy'
+  }
+];
+---
+
+<div class="mt-8 mb-8">
+  <div class="flex flex-wrap gap-2">
+    {shareLinks.map(link => (
+      <a
+        href={link.url}
+        target={link.action !== 'copy' ? "_blank" : undefined}
+        rel="noopener noreferrer"
+        class="flex items-center gap-1 px-3 py-2 bg-dark-100 hover:bg-dark-200 rounded text-dark-700 text-sm transition-colors"
+        data-action={link.action}
+        data-url={url.href}
+      >
+        {link.name}
+      </a>
+    ))}
+  </div>
+</div>
+
+<script>
+  // Handle copy link action
+  document.addEventListener('DOMContentLoaded', () => {
+    const copyLinkButton = document.querySelector('[data-action="copy"]');
+    
+    if (copyLinkButton) {
+      copyLinkButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = copyLinkButton.getAttribute('data-url');
+        
+        if (url) {
+          navigator.clipboard.writeText(url).then(() => {
+            const originalText = copyLinkButton.textContent;
+            copyLinkButton.textContent = 'Copied!';
+            
+            setTimeout(() => {
+              copyLinkButton.textContent = originalText;
+            }, 2000);
+          });
+        }
+      });
+    }
+  });
+</script>

@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostGrid from '../../components/PostGrid.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog');
+  
+  // Get all unique tags
+  const uniqueTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
+  
+  // Create a path for each tag
+  return uniqueTags.map(tag => {
+    const filteredPosts = allPosts.filter(post => 
+      post.data.tags && post.data.tags.includes(tag)
+    );
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+
+// Sort posts by date
+const sortedPosts = posts.sort((a, b) => 
+  new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime()
+);
+---
+
+<BaseLayout title={`${tag} - LeetCode Programming Articles`}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+    <div class="mb-12">
+      <h1 class="text-3xl md:text-4xl font-bold mb-4 text-dark-900">
+        <span class="text-primary-600">#{tag}</span> Articles
+      </h1>
+      <p class="text-lg text-dark-600 max-w-3xl">
+Explora nuestra colección de artículos sobre {tag} para mejorar tus habilidades y conocimientos de programación.      </p>
+    </div>
+    
+    <PostGrid posts={sortedPosts} showHeading={false} />
+    
+    <div class="mt-12">
+      <a 
+        href="/blog" 
+        class="inline-flex items-center text-primary-600 hover:text-primary-700"
+      >
+        <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to all articles
+      </a>
+    </div>
+  </div>
+</BaseLayout>

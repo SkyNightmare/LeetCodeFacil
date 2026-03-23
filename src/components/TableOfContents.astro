@@ -1,0 +1,67 @@
+<div class="mb-8 border border-dark-200 rounded-lg shadow-sm p-4 bg-white">
+  <h2 class="text-xl font-bold mb-4">Table of Contents</h2>
+  <div id="toc" class="text-sm space-y-1"></div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tocContainer = document.getElementById('toc');
+
+    const excludedHeadings = [
+      'Table of Contents',
+      'Subscribe to the Newsletter',
+      'Related Posts',
+      'Share'
+    ];
+
+    const headings = [];
+    let reachedConclusion = false;
+
+    Array.from(document.querySelectorAll('article h2, article h3')).forEach(h => {
+      const text = h.textContent.trim();
+
+      if (text === 'Conclusion') {
+        reachedConclusion = true;
+        headings.push(h); 
+        return;
+      }
+
+      if (reachedConclusion || excludedHeadings.includes(text)) {
+        return;
+      }
+
+      headings.push(h);
+    });
+
+    if (!tocContainer || !headings.length) return;
+
+    const toc = document.createDocumentFragment();
+
+    headings.forEach((heading) => {
+      const link = document.createElement('a');
+      link.textContent = heading.textContent;
+      link.href = `#${heading.id}`;
+      link.className = heading.tagName === 'H2' 
+        ? 'block py-2 hover:text-primary-600 transition-colors font-medium text-dark-800' 
+        : 'block py-1.5 pl-4 hover:text-primary-600 transition-colors text-dark-600';
+
+      link.onclick = (e) => {
+        e.preventDefault();
+        const target = document.getElementById(heading.id);
+        if (target) {
+          window.scrollTo({
+            top: target.offsetTop - 100,
+            behavior: 'smooth'
+          });
+          history.pushState(null, '', link.href);
+        }
+      };
+
+      const listItem = document.createElement('div');
+      listItem.appendChild(link);
+      toc.appendChild(listItem);
+    });
+
+    tocContainer.appendChild(toc);
+  });
+</script>

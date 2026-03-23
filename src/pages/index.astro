@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FeaturedPosts from '../components/FeaturedPosts.astro';
+import PostGrid from '../components/PostGrid.astro';
+import NewsletterSignup from '../components/NewsletterSignup.astro';
+import { getCollection } from 'astro:content';
+
+// Get all blog posts, sort by publication date
+const allPosts = await getCollection('blog');
+const sortedPosts = allPosts.sort((a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime());
+
+// Get featured posts
+const featuredPosts = sortedPosts.filter(post => post.data.featured);
+
+// Get recent posts (excluding featured ones)
+const recentPosts = sortedPosts
+  .filter(post => !post.data.featured)
+  .slice(0, 6);
+
+// Get unique tags for categories section
+const tags = [...new Set(allPosts.flatMap(post => post.data.tags))].slice(0, 10);
+---
+
+<BaseLayout>
+  <section class="bg-gradient-to-b from-primary-900 to-primary-800 text-white py-16 md:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center max-w-3xl mx-auto">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          Domina Leetcode y los algoritmos
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 text-primary-100">
+          Consigue explicaciones sencillas a LeetCodes comunes en entrevistas
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="/blog" 
+            class="px-6 py-3 bg-white text-primary-800 rounded-lg font-medium hover:bg-primary-50 transition-colors"
+          >
+            Leer Articulos
+          </a>
+          <a 
+            href="#newsletter" 
+            class="px-6 py-3 bg-primary-700 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors"
+          >
+            Subscribe
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+    <h2 class="text-2xl md:text-3xl font-bold mb-8 text-dark-900">Artículos Destacados</h2>
+    <FeaturedPosts />
+  </section>
+  
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+    <PostGrid posts={recentPosts} heading="Últimos Artículos" />
+    
+    <div class="mt-10 text-center">
+      <a 
+        href="/blog" 
+        class="inline-flex items-center px-6 py-3 bg-primary-50 text-primary-700 rounded-lg font-medium hover:bg-primary-100 transition-colors"
+      >
+        View All Articles
+        <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+      </a>
+    </div>
+  </section>
+  
+  <section class="bg-dark-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <h2 class="text-2xl md:text-3xl font-bold mb-8 text-dark-900">Categorías Populares</h2>
+      
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {tags.map(tag => (
+          <a 
+            href={`/tags/${tag}`}
+            class="group bg-white p-6 rounded-lg border border-dark-200 text-center hover:shadow-md transition-all hover:-translate-y-1"
+          >
+            <h3 class="font-medium text-lg text-dark-800 group-hover:text-primary-600 transition-colors">
+              #{tag}
+            </h3>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+  
+  <section id="newsletter" class="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+    <NewsletterSignup />
+  </section>
+</BaseLayout>

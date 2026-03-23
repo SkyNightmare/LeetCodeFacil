@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom prose styles for blog content */
+.prose {
+  @apply max-w-none;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  @apply font-bold text-dark-900 scroll-mt-24;
+}
+
+.prose h1 {
+  @apply text-3xl md:text-4xl mt-8 mb-4;
+}
+
+.prose h2 {
+  @apply text-2xl md:text-3xl mt-8 mb-4;
+}
+
+.prose h3 {
+  @apply text-xl md:text-2xl mt-6 mb-3;
+}
+
+.prose p, .prose ul, .prose ol {
+  @apply text-dark-700 leading-relaxed mb-4;
+}
+
+.prose a {
+  @apply text-primary-600 hover:text-primary-700 font-medium no-underline border-b border-primary-200 hover:border-primary-400 transition-colors;
+}
+
+.prose pre {
+  @apply rounded-lg overflow-x-auto bg-dark-800 text-white p-4 my-6;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-primary-400 pl-4 italic text-dark-600 my-4;
+}
+
+.prose ul {
+  @apply list-disc pl-6 space-y-2;
+}
+
+.prose ol {
+  @apply list-decimal pl-6 space-y-2;
+}
+
+.prose img {
+  @apply my-8 rounded-lg shadow-md mx-auto;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

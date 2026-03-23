@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+// Get all blog posts
+const allPosts = await getCollection('blog');
+
+// Get all unique tags and count occurrences
+const tagCounts = allPosts.reduce((acc, post) => {
+  if (post.data.tags) {
+    post.data.tags.forEach(tag => {
+      acc[tag] = (acc[tag] || 0) + 1;
+    });
+  }
+  return acc;
+}, {});
+
+// Sort tags by count (most popular first)
+const sortedTags = Object.entries(tagCounts)
+  .sort((a, b) => b[1] - a[1])
+  .map(([tag, count]) => ({ tag, count }));
+---
+
+<BaseLayout title="Categories - LeetCode Programming Topics">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+    <div class="mb-12">
+      <h1 class="text-3xl md:text-4xl font-bold mb-4 text-dark-900">
+        Categorías
+      </h1>
+      <p class="text-lg text-dark-600 max-w-3xl">
+        Explora todos los temas y categorías para encontrar artículos que coincidan con tus intereses y objetivos de aprendizaje.
+      </p>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {sortedTags.map(({ tag, count }) => (
+        <a 
+          href={`/tags/${tag}`}
+          class="group flex items-center justify-between p-6 bg-white rounded-lg border border-dark-200 hover:shadow-md transition-all hover:-translate-y-1"
+        >
+          <h2 class="text-xl font-medium text-dark-800 group-hover:text-primary-600 transition-colors">
+            #{tag}
+          </h2>
+          <span class="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm">
+            {count} {count === 1 ? 'article' : 'articles'}
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

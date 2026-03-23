@@ -1,0 +1,135 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { formatDate } from '../utils/date';
+import type { CollectionEntry } from 'astro:content';
+import PostTagList from '../components/PostTagList.astro';
+import RelatedPosts from '../components/RelatedPosts.astro';
+import NewsletterSignup from '../components/NewsletterSignup.astro';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  readingTime: string;
+}
+
+const { post, readingTime } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags, author, difficulty } = post.data;
+const formattedPubDate = formatDate(pubDate);
+const formattedUpdatedDate = updatedDate ? formatDate(updatedDate) : null;
+
+const difficultyColors = {
+  Easy: 'bg-green-100 text-green-800',
+  Medium: 'bg-orange-100 text-orange-800',
+  Hard: 'bg-red-100 text-red-800',
+};
+
+const colorClass = difficulty ? difficultyColors[difficulty] || 'bg-gray-100 text-gray-800' : '';
+---
+
+<BaseLayout title={title} description={description} image={heroImage?.src}>
+  <article class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+    <div class="mb-8 text-center">
+      <PostTagList tags={tags} class="justify-center mb-4" />
+      
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-dark-900">
+        {title}
+      </h1>
+      
+      <p class="text-lg text-dark-700 mb-4">
+        {description}
+      </p>
+      
+      <div class="flex flex-wrap items-center justify-center text-sm text-dark-500 gap-4">
+        <span>
+          By <a href="https://www.linkedin.com/in/angel-serrano1/" target="_blank" rel="noopener noreferrer" class="text-primary-600 hover:text-primary-700 transition-colors">
+            {author}
+          </a>
+        </span>
+
+        <span>
+          Published: <time datetime={pubDate.toISOString()}>{formattedPubDate}</time>
+        </span>
+        
+        {updatedDate && (
+          <span>
+            Updated: <time datetime={updatedDate.toISOString()}>{formattedUpdatedDate}</time>
+          </span>
+        )}
+        
+        <span>{readingTime}</span>
+
+        {difficulty && (
+          <span class={`px-3 py-1 rounded-full text-sm font-medium ${colorClass}`}>
+            {difficulty}
+          </span>
+        )}
+      </div>
+    </div>
+    
+    {heroImage && (
+      <div class="mb-10 rounded-lg overflow-hidden">
+        <img 
+          src={heroImage.src} 
+          alt={heroImage.alt || title} 
+          class="w-full h-auto object-cover" 
+          loading="eager"
+        />
+      </div>
+    )}
+    
+    <div class="prose prose-lg max-w-none">
+      <slot />
+    </div>
+    
+    <div class="mt-16 pt-8 border-t border-dark-200">
+      <NewsletterSignup />
+      
+      <div class="mt-16">
+        <RelatedPosts currentPost={post} tags={tags} />
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  article :global(pre) {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+  
+  article :global(h2) {
+    font-size: 1.875rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    scroll-margin-top: 100px;
+  }
+  
+  article :global(h3) {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    scroll-margin-top: 100px;
+  }
+  
+  article :global(p) {
+    margin: 1.25rem 0;
+    line-height: 1.7;
+  }
+  
+  article :global(ul), article :global(ol) {
+    margin: 1.25rem 0;
+    padding-left: 1.25rem;
+  }
+  
+  article :global(li) {
+    margin: 0.5rem 0;
+  }
+  
+  article :global(img) {
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+  }
+</style>
